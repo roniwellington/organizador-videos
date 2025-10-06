@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador de Vídeos de Estudo</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <h1>Organizador de Vídeos</h1>
+
+  <div class="form-container">
+    <input type="text" id="videoTitle" placeholder="Título do vídeo">
+    <input type="text" id="channelName" placeholder="Nome do canal">
+    <input type="text" id="videoUrl" placeholder="Link do vídeo YouTube">
+    <select id="category">
+      <option value="Biologia">Biologia</option>
+      <option value="Tecnologia">Tecnologia</option>
+      <option value="Matemática">Matemática</option>
+      <option value="Astronomia">Astronomia</option>
+    </select>
+    <button onclick="addVideo()">Adicionar</button>
+  </div>
+
+  <div>
+    <label>Filtrar por categoria: </label>
+    <select id="filter" onchange="renderVideos()">
+      <option value="">Todas</option>
+      <option value="Biologia">Biologia</option>
+      <option value="Tecnologia">Tecnologia</option>
+      <option value="Matemática">Matemática</option>
+      <option value="Astronomia">Astronomia</option>
+    </select>
+  </div>
+
+  <div class="header-actions">
+    <button class="clear-btn" onclick="clearAllVideos()">Excluir Todos</button>
+  </div>
+
+  <div id="progressContainer"></div>
+
+  <div class="video-list" id="videoList"></div>
+
+  <script src="assets/js/script.js"></script>
+</body>
+</html>

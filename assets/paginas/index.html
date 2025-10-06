@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador de Vídeos de Estudo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+      background: #f9fafb;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #222;
+    }
+    .form-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .video-list {
+      margin-top: 20px;
+    }
+    .video-item {
+      background: #fff;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .video-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .video-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .video-meta {
+      font-size: 13px;
+      color: #666;
+    }
+    .watched .video-title {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+    .actions button, .actions .delete {
+      margin-left: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #dc2626;
+    }
+    .progress-bar {
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress {
+      background: #16a34a;
+      height: 20px;
+      width: 0;
+      text-align: center;
+      color: #fff;
+      font-size: 12px;
+    }
+    .header-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+    .clear-btn {
+      background: #ef4444;
+      color: #fff;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .clear-btn:hover {
+      background: #b91c1c;
+    }
+  </style>
+</head>
+<body>
+  <h1>Organizador de Vídeos</h1>
+
+  <div class="form-container">
+    <input type="text" id="videoTitle" placeholder="Título do vídeo">
+    <input type="text" id="channelName" placeholder="Nome do canal">
+    <input type="text" id="videoUrl" placeholder="Link do vídeo YouTube">
+    <select id="category">
+      <option value="Biologia">Biologia</option>
+      <option value="Tecnologia">Tecnologia</option>
+      <option value="Matemática">Matemática</option>
+      <option value="Astronomia">Astronomia</option>
+    </select>
+    <button onclick="addVideo()">Adicionar</button>
+  </div>
+
+  <div>
+    <label>Filtrar por categoria: </label>
+    <select id="filter" onchange="renderVideos()">
+      <option value="">Todas</option>
+      <option value="Biologia">Biologia</option>
+      <option value="Tecnologia">Tecnologia</option>
+      <option value="Matemática">Matemática</option>
+      <option value="Astronomia">Astronomia</option>
+    </select>
+  </div>
+
+  <div class="header-actions">
+    <button class="clear-btn" onclick="clearAllVideos()">Excluir Todos</button>
+  </div>
+
+  <div id="progressContainer"></div>
+
+  <div class="video-list" id="videoList"></div>
+
+  <script>
+    let videos = JSON.parse(localStorage.getItem("videos")) || [];
+
+    function saveVideos() {
+      localStorage.setItem("videos", JSON.stringify(videos));
+    }
+
+    function addVideo() {
+      const title = document.getElementById("videoTitle").value;
+      const channel = document.getElementById("channelName").value;
+      const url = document.getElementById("videoUrl").value;
+      const category = document.getElementById("category").value;
+
+      if (!url || !title || !channel) return alert("Preencha todos os campos!");
+
+      videos.push({ title, channel, url, category, watched: false });
+      saveVideos();
+      renderVideos();
+
+      document.getElementById("videoTitle").value = "";
+      document.getElementById("channelName").value = "";
+      document.getElementById("videoUrl").value = "";
+    }
+
+    function toggleWatched(index) {
+      videos[index].watched = !videos[index].watched;
+      saveVideos();
+      renderVideos();
+    }
+
+    function deleteVideo(index) {
+      videos.splice(index, 1);
+      saveVideos();
+      renderVideos();
+    }
+
+    function clearAllVideos() {
+      if (confirm("Tem certeza que deseja excluir todos os vídeos?")) {
+        videos = [];
+        saveVideos();
+        renderVideos();
+      }
+    }
+
+    function renderProgress() {
+      const categories = {};
+      videos.forEach(v => {
+        if (!categories[v.category]) categories[v.category] = { total: 0, watched: 0 };
+        categories[v.category].total++;
+        if (v.watched) categories[v.category].watched++;
+      });
+
+      const container = document.getElementById("progressContainer");
+      container.innerHTML = "";
+      for (let cat in categories) {
+        const percent = Math.round((categories[cat].watched / categories[cat].total) * 100);
+        container.innerHTML += `
+          <p>${cat}: ${percent}%</p>
+          <div class="progress-bar"><div class="progress" style="width:${percent}%">${percent}%</div></div>
+        `;
+      }
+    }
+
+    function renderVideos() {
+      const filter = document.getElementById("filter").value;
+      const list = document.getElementById("videoList");
+      list.innerHTML = "";
+
+      videos.forEach((v, i) => {
+        if (filter && v.category !== filter) return;
+
+        const div = document.createElement("div");
+        div.className = "video-item" + (v.watched ? " watched" : "");
+        div.innerHTML = `
+          <div class="video-info">
+            <span class="video-title"><a href="${v.url}" target="_blank">${v.title}</a></span>
+            <span class="video-meta">Canal: ${v.channel} | Categoria: ${v.category}</span>
+          </div>
+          <div class="actions">
+            <button onclick="toggleWatched(${i})">${v.watched ? 'Desmarcar' : 'Assistido'}</button>
+            <button class="delete" onclick="deleteVideo(${i})">🗑️</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+
+      renderProgress();
+    }
+
+    renderVideos();
+  </script>
+</body>
+</html>
